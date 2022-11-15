@@ -1,0 +1,21 @@
+html,
+body {
+	height: 100%;
+	min-height: 100%;
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+.selected {
+	background-color: #00f;
+}
+
+.userSelected {
+	color: #00f;
+}
+
+.reset {
+	background-color: #f00;
+	margin-left: 5px;
+}

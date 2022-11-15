@@ -1,0 +1,30 @@
+{
+	"compilerOptions": {
+		"jsx": "react-jsx",
+		"module": "commonjs",
+		"noImplicitAny": false,
+		"preserveConstEnums": true,
+		"removeComments": true,
+		"target": "es5",
+		"sourceMap": true,
+		"esModuleInterop": true,
+		"downlevelIteration": true,
+		"lib": [
+			"ESNext"
+		],
+		"baseUrl": "src",
+		"paths": {
+			"@components": [
+				"./components"
+			],
+			"@pages": [
+				"./pages"
+			],
+			"@icons/": [
+				"../../../assets/icons/*"
+			]
+		}
+	},
+	"include": ["./src/**/**/*"],
+	"typeRoots": ["./node_modules/@types", "./src/types"]
+}

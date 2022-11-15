@@ -1,0 +1,8 @@
+node_modules/
+.env
+package-lock.json
+/public/main*
+/public/images/
+/public/statistics.html
+*.scss.d.ts
+.idea
