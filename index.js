@@ -1,6 +1,6 @@
 const { WebSocketServer } = require('ws');
 
-var password = 'holatest123';
+var password = 'holatest1232';
 var connectedUsers = {};
 
 const wss = new WebSocketServer({
@@ -8,46 +8,68 @@ const wss = new WebSocketServer({
 });
 
 wss.on('connection', function connection(ws, req) {
+    var passwd = req.url.match(/passwd=(\w+)/);
+    var user = req.url.match(/user=(\w+)/);
+
     // Check the password
-    if (req.headers.passwd !== password) {
-        ws.send('wrong password');
+    if (!passwd || passwd[1] !== password) {
+        ws.send(JSON.stringify({
+            type: 'error',
+            message: 'Wrong password'
+        }));
         return ws.terminate();
     }
 
     // Check if the user is missing
-    if (!req.headers.user) {
-        ws.send('User is missing');
+    if (!user) {
+        ws.send(JSON.stringify({
+            type: 'error',
+            message: 'User is missing'
+        }));
         return ws.terminate();
     }
 
     // Check if the user is already connected
-    if (Object.keys(connectedUsers).includes(req.headers.user)) {
-        ws.send('User already connected');
+    if (Object.keys(connectedUsers).includes(user[1])) {
+        ws.send(JSON.stringify({
+            type: 'error',
+            message: 'User already connected'
+        }));
         return ws.terminate();
     }
 
     // On message event listener
-    ws.on('message', onMessage(ws, req.headers.user));
+    ws.on('message', onMessage(ws, user[1]));
 
     // On connection close remove the user and notify all users
     ws.on('close', () => {
-        delete connectedUsers[req.headers.user];
+        delete connectedUsers[user[1]];
         sendEveryone({
-            type: 'disconnected',
-            user: req.headers.user
+            type: 'scoreboard',
+            scoreboard: getScoreboard()
         })
     });
 
-    connectedUsers[req.headers.user] = { ws };
+    connectedUsers[user[1]] = { ws };
 
-    ws.send(JSON.stringify(getScoreboard()));
+    sendEveryone({
+        type: 'scoreboard',
+        scoreboard: getScoreboard()
+    })
 });
 
 function getScoreboard() {
     var score = {};
-    Object.keys(connectedUsers).forEach(u => score[u] = connectedUsers[u].score ?? false);
+    Object.keys(connectedUsers).forEach(u => score[u] = !!connectedUsers[u].score);
     return score;
 }
+
+function getScoreboardPoints() {
+    var score = {};
+    Object.keys(connectedUsers).forEach(u => score[u] = connectedUsers[u].score);
+    return score;
+}
+
 
 function sendEveryone(json) {
     var message = JSON.stringify(json);
@@ -62,16 +84,18 @@ function onMessage(ws, user) {
         try {
             json = JSON.parse(data.toString());
         } catch (e) {
-            ws.send('Invalid JSON');
+            ws.send(JSON.stringify({
+                type: 'error',
+                message: 'Invalid JSON'
+            }));
             return ws.terminate();
         }
         switch (json.type) {
             case 'vote':
                 connectedUsers[user].score = json.value;
                 sendEveryone({
-                    type: 'vote',
-                    user: user,
-                    score: json.value
+                    type: 'scoreboard',
+                    scoreboard: getScoreboard()
                 })
                 break;
             case 'calculate':
@@ -91,8 +115,8 @@ function onMessage(ws, user) {
                         var total = 0;
                         Object.keys(connectedUsers).forEach(u => total += connectedUsers[u].score);
                         sendEveryone({
-                            type: 'total',
-                            total
+                            type: 'scoreboard',
+                            scoreboard: getScoreboardPoints()
                         });
                     }
                 }, 1000)
@@ -101,7 +125,10 @@ function onMessage(ws, user) {
                 Object.keys(connectedUsers).forEach(u => {
                     connectedUsers[u].score = false;
                 });
-                sendEveryone({ type: 'reset' });
+                sendEveryone({
+                    type: 'scoreboard',
+                    scoreboard: getScoreboard()
+                });
                 break;
         }
     }
