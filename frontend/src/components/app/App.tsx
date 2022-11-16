@@ -48,6 +48,9 @@ export default class App extends Component<Record<string, unknown>, State> {
 				case 'time':
 					this.setState({time: json.time});
 					break;
+				case 'reset':
+					this.setState({scoreboard: json.scoreboard, vote: undefined, time: undefined});
+					break;
 				default:
 					break;
 			}
@@ -92,23 +95,23 @@ export default class App extends Component<Record<string, unknown>, State> {
 					) : (
 						<>
 							{time}
-							<br />
-							{nums.map(n => (
+							<div>
+								{nums.map(n => (
+									<button
+										className={vote === n && styles.selected}
+										disabled={time === 0}
+										key={n}
+										onClick={() => this.vote(n)}>
+										{n}
+									</button>
+								))}
 								<button
-									className={vote === n && styles.selected}
+									className={styles.reset}
 									disabled={time === 0}
-									key={n}
-									onClick={() => this.vote(n)}>
-									{n}
+									onClick={() => this.vote(false)}>
+									Clear
 								</button>
-							))}
-							<button
-								className={styles.reset}
-								disabled={time === 0}
-								onClick={() => this.vote(false)}>
-								Clear
-							</button>
-							<br />
+							</div>
 							<button
 								disabled={time ?? false}
 								onClick={() => this.client.send('{"type": "calculate"}')}>

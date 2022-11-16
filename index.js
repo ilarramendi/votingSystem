@@ -126,7 +126,7 @@ function onMessage(ws, user) {
                     connectedUsers[u].score = false;
                 });
                 sendEveryone({
-                    type: 'scoreboard',
+                    type: 'reset',
                     scoreboard: getScoreboard()
                 });
                 break;
